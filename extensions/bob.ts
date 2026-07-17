@@ -15,6 +15,8 @@ import { createServer } from "node:http";
 import { createServer as createNetServer } from "node:net";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { resolveRequestSigningSecret, withRequestSigningHeaders } from "./request-signing.ts";
+import { streamSignedOpenAICompletions } from "./signed-openai.ts";
 
 type CompatibleApi = "openai-completions" | "openai-responses" | "anthropic-messages";
 type InputType = "text" | "image";
@@ -235,6 +237,16 @@ function parseJsonHeaders(): Record<string, string> | undefined {
 		);
 		return undefined;
 	}
+}
+
+function signHeaders(
+	method: string,
+	url: string,
+	headers: Record<string, string>,
+	body = "",
+): Record<string, string> {
+	const secret = resolveRequestSigningSecret();
+	return secret ? withRequestSigningHeaders(headers, { method, url, body, secret }) : headers;
 }
 
 function buildHeaders(settings?: BobShellSettings): Record<string, string> | undefined {
@@ -511,9 +523,10 @@ async function fetchBobModelCatalog(
 	if (teamId) headers["x-team-id"] = teamId;
 
 	try {
-		const response = await fetch(`${providerBaseUrl().replace(/\/+$/, "")}/model/info`, {
+		const url = `${providerBaseUrl().replace(/\/+$/, "")}/model/info`;
+		const response = await fetch(url, {
 			method: "GET",
-			headers,
+			headers: signHeaders("GET", url, headers),
 			signal: controller.signal,
 		});
 		if (!response.ok) {
@@ -612,6 +625,22 @@ function streamBob(
 	);
 	const hasHeaderAuth = Object.keys(headers).some((name) => name.toLowerCase() === "authorization");
 	const forwardedOptions: SimpleStreamOptions = { ...options, headers };
+	const signingSecret = resolveRequestSigningSecret();
+	if (signingSecret) {
+		if (adapter !== "openai-completions") {
+			throw new Error("Request signing currently supports only IBM_BOB_API=openai-completions.");
+		}
+		return streamSignedOpenAICompletions(
+			model as Model<"openai-completions">,
+			context,
+			{
+				...forwardedOptions,
+				apiKey: hasHeaderAuth ? "pi-dangit-bobby-header-auth" : options?.apiKey,
+			},
+			signingSecret,
+			openAICompletionsApi().streamSimple,
+		);
+	}
 
 	switch (adapter) {
 		case "anthropic-messages":
