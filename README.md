@@ -1,4 +1,6 @@
-# pi-bob
+# pi-dangit-bobby
+
+Forked from [`pi-bob@0.2.0`](https://www.npmjs.com/package/pi-bob).
 
 Pi provider package for IBM Bob / IBM-approved enterprise model endpoints.
 
@@ -54,7 +56,7 @@ Discovered context limits, output limits, vision support, reasoning support, bac
 Use Bob SSO through Pi:
 
 ```bash
-pi -e /Users/larry.song/work/hashicorp/pi-bob
+pi -e /Users/larry.song/work/hashicorp/pi-dangit-bobby
 # inside Pi:
 #   /login ibm-bob
 #   /model ibm-bob/premium
@@ -67,8 +69,8 @@ For non-interactive use with an approved Bob API key, run:
 ```bash
 export IBM_BOB_API_KEY="..." # IBM_BOB_KEY is also accepted; do not commit either
 
-pi -e /Users/larry.song/work/hashicorp/pi-bob --list-models
-pi -e /Users/larry.song/work/hashicorp/pi-bob --model ibm-bob/premium
+pi -e /Users/larry.song/work/hashicorp/pi-dangit-bobby --list-models
+pi -e /Users/larry.song/work/hashicorp/pi-dangit-bobby --model ibm-bob/premium
 ```
 
 API keys use Bob's `Authorization: Apikey ...` scheme by default. If your approved credential is instead a bearer token, set `IBM_BOB_AUTH_SCHEME=Bearer`. Pi resolves credentials in this order: runtime `--api-key`, a stored credential (including SSO), then the provider's environment-key fallback. The model catalog follows stored SSO metadata when SSO remains configured. Run `/logout ibm-bob` before switching from SSO to either `IBM_BOB_API_KEY` or runtime `--api-key`; runtime-only keys cannot drive startup discovery.
@@ -109,7 +111,7 @@ For SSO, do **not** copy a token out of Bob's local credential store unless IBM 
 | `IBM_BOB_READ_BOBSHELL_SETTINGS` | `true` | Read non-secret `instanceId`/`teamId` from `~/.bob/settings.json`. |
 | `IBM_BOB_INSTANCE_ID` | Bob setting | Override `x-instance-id`. |
 | `IBM_BOB_TEAM_ID` | Bob setting | Override `x-team-id`. |
-| `IBM_BOB_USER_AGENT` | `pi-bob/0.1.0` | User-Agent header sent to Bob endpoint. |
+| `IBM_BOB_USER_AGENT` | `pi-dangit-bobby/0.1.0` | User-Agent header sent to Bob endpoint. |
 
 ### Auth headers
 
@@ -155,7 +157,7 @@ The response included `bob-ok` and successful usage stats for model `premium`.
 The unauthenticated Bob model-info endpoint responds as expected when called with a normal User-Agent:
 
 ```bash
-curl -H 'User-Agent: pi-bob/0.1.0' \
+curl -H 'User-Agent: pi-dangit-bobby/0.1.0' \
   https://api.us-east.bob.ibm.com/inference/v1/model/info
 ```
 
@@ -188,13 +190,13 @@ Result: HTTP `401 unauthorized`.
 End-to-end smoke with a fresh Bob SSO token succeeded:
 
 ```text
-pi -e . --model ibm-bob/premium -p 'Reply with exactly: pi-bob-ok'
+pi -e . --model ibm-bob/premium -p 'Reply with exactly: pi-dangit-bobby-ok'
 ```
 
 Result:
 
 ```text
-pi-bob-ok
+pi-dangit-bobby-ok
 ```
 
 ## Install options
@@ -202,19 +204,19 @@ pi-bob-ok
 Temporary test load:
 
 ```bash
-pi -e /Users/larry.song/work/hashicorp/pi-bob
+pi -e /Users/larry.song/work/hashicorp/pi-dangit-bobby
 ```
 
 Install as a local Pi package:
 
 ```bash
-pi install /Users/larry.song/work/hashicorp/pi-bob
+pi install /Users/larry.song/work/hashicorp/pi-dangit-bobby
 ```
 
 Remove later:
 
 ```bash
-pi remove /Users/larry.song/work/hashicorp/pi-bob
+pi remove /Users/larry.song/work/hashicorp/pi-dangit-bobby
 ```
 
 ## Next steps

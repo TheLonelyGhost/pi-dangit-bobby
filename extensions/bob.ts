@@ -198,7 +198,7 @@ function parseApi(): CompatibleApi {
 	const requested = env("IBM_BOB_API") ?? "openai-completions";
 	if (SUPPORTED_APIS.has(requested as CompatibleApi)) return requested as CompatibleApi;
 	console.warn(
-		`pi-bob: unsupported IBM_BOB_API=${JSON.stringify(requested)}; falling back to openai-completions.`,
+		`pi-dangit-bobby: unsupported IBM_BOB_API=${JSON.stringify(requested)}; falling back to openai-completions.`,
 	);
 	return "openai-completions";
 }
@@ -216,20 +216,20 @@ function parseJsonHeaders(): Record<string, string> | undefined {
 	try {
 		const parsed = JSON.parse(json) as unknown;
 		if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-			console.warn("pi-bob: IBM_BOB_HEADERS_JSON must be a JSON object; ignoring it.");
+			console.warn("pi-dangit-bobby: IBM_BOB_HEADERS_JSON must be a JSON object; ignoring it.");
 			return undefined;
 		}
 
 		const headers: Record<string, string> = {};
 		for (const [key, value] of Object.entries(parsed)) {
 			if (typeof value === "string") headers[key] = value;
-			else console.warn(`pi-bob: header ${JSON.stringify(key)} is not a string; ignoring it.`);
+			else console.warn(`pi-dangit-bobby: header ${JSON.stringify(key)} is not a string; ignoring it.`);
 		}
 
 		return Object.keys(headers).length > 0 ? headers : undefined;
 	} catch (error) {
 		console.warn(
-			`pi-bob: failed to parse IBM_BOB_HEADERS_JSON; ignoring it. ${
+			`pi-dangit-bobby: failed to parse IBM_BOB_HEADERS_JSON; ignoring it. ${
 				error instanceof Error ? error.message : String(error)
 			}`,
 		);
@@ -239,7 +239,7 @@ function parseJsonHeaders(): Record<string, string> | undefined {
 
 function buildHeaders(settings?: BobShellSettings): Record<string, string> | undefined {
 	const headers: Record<string, string> = {
-		"User-Agent": env("IBM_BOB_USER_AGENT") ?? "pi-bob/0.1.0",
+		"User-Agent": env("IBM_BOB_USER_AGENT") ?? "pi-dangit-bobby/0.1.0",
 	};
 
 	const instanceId = env("IBM_BOB_INSTANCE_ID") ?? settings?.ibm?.instanceId;
@@ -503,7 +503,7 @@ async function fetchBobModelCatalog(
 	const headers: Record<string, string> = {
 		Accept: "application/json",
 		Authorization: `${authScheme} ${accessToken}`,
-		"User-Agent": env("IBM_BOB_USER_AGENT") ?? "pi-bob/0.1.0",
+		"User-Agent": env("IBM_BOB_USER_AGENT") ?? "pi-dangit-bobby/0.1.0",
 	};
 	const instanceId = env("IBM_BOB_INSTANCE_ID") ?? settings?.ibm?.instanceId;
 	const teamId = env("IBM_BOB_TEAM_ID") ?? settings?.ibm?.teamId;
@@ -547,7 +547,7 @@ async function attachBobModelCatalog(
 	} catch (error) {
 		const previousCatalog = cachedCatalog(previous);
 		console.warn(
-			`pi-bob: ${error instanceof Error ? error.message : String(error)} Using ${
+			`pi-dangit-bobby: ${error instanceof Error ? error.message : String(error)} Using ${
 				previousCatalog ? "the previously cached catalog" : "configured fallback models"
 			}.`,
 		);
@@ -622,12 +622,12 @@ function streamBob(
 		case "openai-responses":
 			return openAIResponsesApi().streamSimple(model as Model<"openai-responses">, context, {
 				...forwardedOptions,
-				apiKey: hasHeaderAuth ? "pi-bob-header-auth" : options?.apiKey,
+				apiKey: hasHeaderAuth ? "pi-dangit-bobby-header-auth" : options?.apiKey,
 			});
 		default:
 			return openAICompletionsApi().streamSimple(model as Model<"openai-completions">, context, {
 				...forwardedOptions,
-				apiKey: hasHeaderAuth ? "pi-bob-header-auth" : options?.apiKey,
+				apiKey: hasHeaderAuth ? "pi-dangit-bobby-header-auth" : options?.apiKey,
 			});
 	}
 }
@@ -739,7 +739,7 @@ async function postToken(path: "/authn/v1/auth/token" | "/authn/v1/auth/refresh"
 	try {
 		const response = await fetch(`${bobOrigin()}${path}`, {
 			method: "POST",
-			headers: { "Content-Type": "application/json", "User-Agent": env("IBM_BOB_USER_AGENT") ?? "pi-bob/0.1.0" },
+			headers: { "Content-Type": "application/json", "User-Agent": env("IBM_BOB_USER_AGENT") ?? "pi-dangit-bobby/0.1.0" },
 			body: JSON.stringify(body),
 			signal: controller.signal,
 		});
@@ -824,7 +824,7 @@ export default async function (pi: ExtensionAPI) {
 			catalog = await fetchBobModelCatalog(apiKey.value, apiKeyAuthScheme(), settings);
 		} catch (error) {
 			console.warn(
-				`pi-bob: ${error instanceof Error ? error.message : String(error)} Using configured fallback models.`,
+				`pi-dangit-bobby: ${error instanceof Error ? error.message : String(error)} Using configured fallback models.`,
 			);
 		}
 	}

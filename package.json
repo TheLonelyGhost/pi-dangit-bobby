@@ -1,8 +1,8 @@
 {
-  "name": "pi-bob",
-  "version": "0.2.0",
+  "name": "pi-dangit-bobby",
+  "version": "0.1.0",
   "type": "module",
-  "description": "Pi provider extension for IBM Bob / IBM-approved compatible model endpoints.",
+  "description": "Pi provider extension for authorized IBM Bob-compatible model endpoints.",
   "keywords": [
     "pi-package",
     "pi-coding-agent",
@@ -22,14 +22,6 @@
   ],
   "author": "Larry Song",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/songlining/pi-bob.git"
-  },
-  "bugs": {
-    "url": "https://github.com/songlining/pi-bob/issues"
-  },
-  "homepage": "https://github.com/songlining/pi-bob#readme",
   "scripts": {
     "check": "pi -e . --list-models >/dev/null",
     "test": "bun test",
