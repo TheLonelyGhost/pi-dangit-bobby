@@ -10,7 +10,8 @@ import {
 	streamSignedOpenAICompletions,
 } from "../extensions/signed-openai.ts";
 
-const SECRET = "0123456789abcdef0123456789abcdef";
+// Public deterministic test vector; never use this value as a production credential.
+const TEST_SIGNING_KEY = "0123456789abcdef0123456789abcdef";
 
 const model: Model<"openai-completions"> = {
 	id: "premium",
@@ -145,7 +146,7 @@ test("signs the final payload and preserves authentication headers", async () =>
 		return stream;
 	};
 
-	const stream = streamSignedOpenAICompletions(model, context, options, SECRET, delegate);
+	const stream = streamSignedOpenAICompletions(model, context, options, TEST_SIGNING_KEY, delegate);
 	for await (const _event of stream) {
 		// The fake delegate emits no model events.
 	}
@@ -166,7 +167,7 @@ test("signs the final payload and preserves authentication headers", async () =>
 		url: "https://api.us-east.bob.ibm.com/inference/v1/chat/completions",
 		timestamp,
 		body: JSON.stringify(capturedPayload),
-		secret: SECRET,
+		secret: TEST_SIGNING_KEY,
 	});
 	assert.equal(capturedOptions.headers?.["x-request-signature"], expected);
 });
@@ -186,7 +187,7 @@ test("signature matches the exact body sent by the OpenAI adapter", async () => 
 					url: `http://127.0.0.1${request.url}`,
 					timestamp,
 					body,
-					secret: SECRET,
+					secret: TEST_SIGNING_KEY,
 				});
 				signatureValid = signature === expected;
 			}
@@ -213,7 +214,7 @@ test("signature matches the exact body sent by the OpenAI adapter", async () => 
 			localModel,
 			{ messages: [{ role: "user", content: "Hello", timestamp: 1 }] },
 			{ headers: { Authorization: "Bearer redacted" } },
-			SECRET,
+			TEST_SIGNING_KEY,
 			openAICompletionsApi().streamSimple,
 		);
 		const events = [];

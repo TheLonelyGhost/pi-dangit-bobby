@@ -9,27 +9,28 @@ import {
 	withRequestSigningHeaders,
 } from "../extensions/request-signing.ts";
 
-const SECRET = "0123456789abcdef0123456789abcdef";
+// Public deterministic test vector; never use this value as a production credential.
+const TEST_SIGNING_KEY = "0123456789abcdef0123456789abcdef";
 const TIMESTAMP = "2026-07-17T12:34:56.789Z";
 const URL = "https://api.us-east.bob.ibm.com/inference/v1/chat/completions?x=1";
 const BODY = '{"model":"premium","stream":true}';
 
 test("creates the expected HMAC-SHA256 signature", () => {
 	assert.equal(
-		createRequestSignature({ method: "post", url: URL, timestamp: TIMESTAMP, body: BODY, secret: SECRET }),
+		createRequestSignature({ method: "post", url: URL, timestamp: TIMESTAMP, body: BODY, secret: TEST_SIGNING_KEY }),
 		"65828c5bbb13aa5fbf3b67ead5d17520a7722334c323f3639133f8c2f0fc3e39",
 	);
 });
 
 test("signs only the URL path and query, not the origin", () => {
-	const first = createRequestSignature({ method: "GET", url: "https://one.example.test/path?q=1", timestamp: TIMESTAMP, secret: SECRET });
-	const second = createRequestSignature({ method: "GET", url: "https://two.example.test/path?q=1", timestamp: TIMESTAMP, secret: SECRET });
+	const first = createRequestSignature({ method: "GET", url: "https://one.example.test/path?q=1", timestamp: TIMESTAMP, secret: TEST_SIGNING_KEY });
+	const second = createRequestSignature({ method: "GET", url: "https://two.example.test/path?q=1", timestamp: TIMESTAMP, secret: TEST_SIGNING_KEY });
 	assert.equal(first, second);
 });
 
 test("returns the canonical timestamp and signature headers", () => {
 	assert.deepEqual(
-		createRequestSigningHeaders({ method: "POST", url: URL, timestamp: TIMESTAMP, body: BODY, secret: SECRET }),
+		createRequestSigningHeaders({ method: "POST", url: URL, timestamp: TIMESTAMP, body: BODY, secret: TEST_SIGNING_KEY }),
 		{
 			[REQUEST_TIMESTAMP_HEADER]: TIMESTAMP,
 			[REQUEST_SIGNATURE_HEADER]: "65828c5bbb13aa5fbf3b67ead5d17520a7722334c323f3639133f8c2f0fc3e39",
@@ -44,7 +45,7 @@ test("replaces preexisting signing headers case-insensitively", () => {
 			"X-Request-Signature": "stale",
 			"x-request-timestamp": "stale",
 		},
-		{ method: "POST", url: URL, timestamp: TIMESTAMP, body: BODY, secret: SECRET },
+		{ method: "POST", url: URL, timestamp: TIMESTAMP, body: BODY, secret: TEST_SIGNING_KEY },
 	);
 	assert.equal(headers.Accept, "application/json");
 	assert.equal(headers[REQUEST_TIMESTAMP_HEADER], TIMESTAMP);
@@ -53,7 +54,7 @@ test("replaces preexisting signing headers case-insensitively", () => {
 });
 
 test("loads a sufficiently long secret from the environment", () => {
-	assert.equal(resolveRequestSigningSecret({ IBM_BOB_REQUEST_SIGNING_SECRET: SECRET }), SECRET);
+	assert.equal(resolveRequestSigningSecret({ IBM_BOB_REQUEST_SIGNING_SECRET: TEST_SIGNING_KEY }), TEST_SIGNING_KEY);
 });
 
 test("allows signing to remain optional when no secret is configured", () => {
@@ -73,7 +74,7 @@ test("rejects weak or accidentally padded secrets", () => {
 		/at least 32 bytes/,
 	);
 	assert.throws(
-		() => resolveRequestSigningSecret({ IBM_BOB_REQUEST_SIGNING_SECRET: `${SECRET} ` }),
+		() => resolveRequestSigningSecret({ IBM_BOB_REQUEST_SIGNING_SECRET: `${TEST_SIGNING_KEY} ` }),
 		/leading or trailing whitespace/,
 	);
 });
@@ -87,11 +88,11 @@ test("rejects ambiguous required-signing configuration", () => {
 
 test("rejects malformed methods and non-canonical timestamps", () => {
 	assert.throws(
-		() => createRequestSignature({ method: "POST\nX", url: URL, timestamp: TIMESTAMP, body: BODY, secret: SECRET }),
+		() => createRequestSignature({ method: "POST\nX", url: URL, timestamp: TIMESTAMP, body: BODY, secret: TEST_SIGNING_KEY }),
 		/Invalid HTTP method/,
 	);
 	assert.throws(
-		() => createRequestSignature({ method: "POST", url: URL, timestamp: "2026-07-17", body: BODY, secret: SECRET }),
+		() => createRequestSignature({ method: "POST", url: URL, timestamp: "2026-07-17", body: BODY, secret: TEST_SIGNING_KEY }),
 		/canonical ISO-8601/,
 	);
 });
