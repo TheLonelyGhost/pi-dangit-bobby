@@ -27,7 +27,8 @@
     "test": "tsx --test tests/*.test.ts",
     "typecheck": "tsc --noEmit --module NodeNext --moduleResolution NodeNext --target ES2022 --skipLibCheck --allowImportingTsExtensions extensions/*.ts tests/*.ts",
     "clean": "echo 'nothing to clean'",
-    "build": "echo 'nothing to build'"
+    "build": "echo 'nothing to build'",
+    "extract": "node ./scripts/read-build-value.mjs"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",
@@ -38,6 +39,7 @@
     "@earendil-works/pi-coding-agent": "0.80.7",
     "@types/node": "^26.1.1",
     "tsx": "^4.23.1",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "which": "^7.0.0"
   }
 }

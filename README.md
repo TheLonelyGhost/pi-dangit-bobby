@@ -150,6 +150,8 @@ For signed requests, the extension sends `x-request-timestamp` and `x-request-si
 
 Signing currently covers model discovery and OpenAI Chat Completions requests. SSO token exchange remains authenticated by the authorization-code/refresh-token flow. `openai-responses` and `anthropic-messages` remain available only when request signing is not configured.
 
+To harvest the request signing HMAC, run `npm run extract` and it will extract the signing key from your currently installed Bob CLI, printing it to the console.
+
 ### Model metadata
 
 | Variable | Default | Description |
@@ -242,13 +244,13 @@ pi -e ./pi-dangit-bobby
 Install as a local Pi package:
 
 ```bash
-pi install ./pi-dangit-bobby
+pi install https://github.com/TheLonelyGhost/pi-dangit-bobby
 ```
 
 Remove later:
 
 ```bash
-pi remove ./pi-dangit-bobby
+pi remove https://github.com/TheLonelyGhost/pi-dangit-bobby
 ```
 
 ## Next steps
