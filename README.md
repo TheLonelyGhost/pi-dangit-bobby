@@ -115,7 +115,9 @@ If your IBM gateway deployment requires request signing, inject `IBM_BOB_REQUEST
 | `IBM_BOB_READ_BOBSHELL_SETTINGS` | `true` | Read non-secret `instanceId`/`teamId` from `~/.bob/settings.json`. |
 | `IBM_BOB_INSTANCE_ID` | Bob setting | Override `x-instance-id`. |
 | `IBM_BOB_TEAM_ID` | Bob setting | Override `x-team-id`. |
-| `IBM_BOB_USER_AGENT` | `pi-dangit-bobby/0.1.0` | User-Agent header sent to Bob endpoint. |
+| `IBM_BOB_VERSION` | installed `bob --version`; fallback `1.0.6` | Override the Bob Shell version reported in the fixed `bobshell/<version>` User-Agent. The value must be a semantic version. |
+
+The User-Agent is always formatted as `bobshell/<version>`. Version resolution uses `IBM_BOB_VERSION` first, then the installed `bob --version`, and finally `1.0.6` when Bob is unavailable. Invalid environment overrides are rejected to prevent malformed headers.
 
 ### Auth headers
 
