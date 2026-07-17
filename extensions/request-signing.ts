@@ -23,7 +23,10 @@ export interface RequestSigningHeaders {
 
 function parseRequired(value: string | undefined): boolean {
 	if (!value) return false;
-	return ["1", "true", "yes", "y", "on"].includes(value.trim().toLowerCase());
+	const normalized = value.trim().toLowerCase();
+	if (["1", "true", "yes", "y", "on"].includes(normalized)) return true;
+	if (["0", "false", "no", "n", "off"].includes(normalized)) return false;
+	throw new Error(`${REQUIRE_REQUEST_SIGNING_ENV} must be a boolean value.`);
 }
 
 export function resolveRequestSigningSecret(

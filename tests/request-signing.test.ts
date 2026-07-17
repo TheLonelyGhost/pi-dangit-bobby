@@ -78,6 +78,13 @@ test("rejects weak or accidentally padded secrets", () => {
 	);
 });
 
+test("rejects ambiguous required-signing configuration", () => {
+	assert.throws(
+		() => resolveRequestSigningSecret({ IBM_BOB_REQUIRE_REQUEST_SIGNING: "sometimes" }),
+		/must be a boolean value/,
+	);
+});
+
 test("rejects malformed methods and non-canonical timestamps", () => {
 	assert.throws(
 		() => createRequestSignature({ method: "POST\nX", url: URL, timestamp: TIMESTAMP, body: BODY, secret: SECRET }),
