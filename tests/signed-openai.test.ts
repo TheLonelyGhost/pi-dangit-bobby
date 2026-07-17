@@ -76,6 +76,55 @@ test("builds the OpenAI Chat Completions payload that is signed", () => {
 	});
 });
 
+test("serializes assistant tool calls and tool results", () => {
+	const payload = buildOpenAICompletionsPayload(model, {
+		messages: [
+			{
+				role: "assistant",
+				content: [
+					{ type: "text", text: "Checking" },
+					{ type: "toolCall", id: "call+unsafe|ignored", name: "read", arguments: { path: "a.txt" } },
+				],
+				api: "openai-completions",
+				provider: "ibm-bob",
+				model: "premium",
+				usage: {
+					input: 0,
+					output: 0,
+					cacheRead: 0,
+					cacheWrite: 0,
+					totalTokens: 0,
+					cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+				},
+				stopReason: "toolUse",
+				timestamp: 1,
+			},
+			{
+				role: "toolResult",
+				toolCallId: "call+unsafe|ignored",
+				toolName: "read",
+				content: [{ type: "text", text: "file contents" }],
+				isError: false,
+				timestamp: 2,
+			},
+		],
+	});
+	assert.deepEqual(payload.messages, [
+		{
+			role: "assistant",
+			content: "Checking",
+			tool_calls: [
+				{
+					id: "call_unsafe",
+					type: "function",
+					function: { name: "read", arguments: '{"path":"a.txt"}' },
+				},
+			],
+		},
+		{ role: "tool", content: "file contents", tool_call_id: "call_unsafe" },
+	]);
+});
+
 test("signs the final payload and preserves authentication headers", async () => {
 	let capturedOptions: SimpleStreamOptions | undefined;
 	let capturedPayload: unknown;
