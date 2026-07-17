@@ -87,11 +87,24 @@ IBM_BOB_MODELS="premium"                  # fallback catalog
 IBM_BOB_MODEL_DISCOVERY_TIMEOUT_MS="5000"
 ```
 
+Override the reported Bob Shell version when the installed `bob` CLI should not determine it:
+
+```bash
+export IBM_BOB_VERSION="1.0.6"
+```
+
+For an authorized gateway that requires request signing, inject the signing key with an approved secret manager and enable fail-closed behavior before launching Pi:
+
+```bash
+export IBM_BOB_REQUEST_SIGNING_SECRET="$(your-approved-secret-command)"
+export IBM_BOB_REQUIRE_REQUEST_SIGNING="true"
+```
+
+Replace `your-approved-secret-command` with a command that emits only the secret. The key must be at least 32 bytes. Do not paste the key directly into shell history or store it in source-controlled files, `.env` files, or Pi configuration.
+
 Discovered metadata is used unless a corresponding metadata override is set. Without a discovered catalog, fallback models use a 200,000-token context window and 8,192-token output limit.
 
 For SSO, do **not** copy a token out of Bob's local credential store unless IBM policy explicitly permits it. Use `/login ibm-bob` instead.
-
-If your IBM gateway deployment requires request signing, inject `IBM_BOB_REQUEST_SIGNING_SECRET` through your approved secret manager or process supervisor. Do not place it in source files, shell history, checked-in `.env` files, or Pi configuration. Set `IBM_BOB_REQUIRE_REQUEST_SIGNING=true` to fail closed when the secret is unavailable.
 
 ## Configuration
 
