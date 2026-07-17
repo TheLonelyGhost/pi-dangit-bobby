@@ -15,6 +15,7 @@ import { createServer } from "node:http";
 import { createServer as createNetServer } from "node:net";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { createBobUserAgent } from "./bob-version.ts";
 import { resolveRequestSigningSecret, withRequestSigningHeaders } from "./request-signing.ts";
 import { streamSignedOpenAICompletions } from "./signed-openai.ts";
 
@@ -74,6 +75,7 @@ interface CallbackServer {
 
 const PROVIDER_ID = "ibm-bob";
 const BOB_API = "ibm-bob-compatible" as Api;
+const BOB_USER_AGENT = createBobUserAgent();
 const DEFAULT_BOB_ORIGIN = "https://api.us-east.bob.ibm.com";
 const DEFAULT_BASE_URL = `${DEFAULT_BOB_ORIGIN}/inference/v1`;
 const DEFAULT_WEB_LOGIN_URL = "https://bob.ibm.com/login";
@@ -251,7 +253,7 @@ function signHeaders(
 
 function buildHeaders(settings?: BobShellSettings): Record<string, string> | undefined {
 	const headers: Record<string, string> = {
-		"User-Agent": env("IBM_BOB_USER_AGENT") ?? "pi-dangit-bobby/0.1.0",
+		"User-Agent": BOB_USER_AGENT,
 	};
 
 	const instanceId = env("IBM_BOB_INSTANCE_ID") ?? settings?.ibm?.instanceId;
@@ -515,7 +517,7 @@ async function fetchBobModelCatalog(
 	const headers: Record<string, string> = {
 		Accept: "application/json",
 		Authorization: `${authScheme} ${accessToken}`,
-		"User-Agent": env("IBM_BOB_USER_AGENT") ?? "pi-dangit-bobby/0.1.0",
+		"User-Agent": BOB_USER_AGENT,
 	};
 	const instanceId = env("IBM_BOB_INSTANCE_ID") ?? settings?.ibm?.instanceId;
 	const teamId = env("IBM_BOB_TEAM_ID") ?? settings?.ibm?.teamId;
@@ -768,7 +770,7 @@ async function postToken(path: "/authn/v1/auth/token" | "/authn/v1/auth/refresh"
 	try {
 		const response = await fetch(`${bobOrigin()}${path}`, {
 			method: "POST",
-			headers: { "Content-Type": "application/json", "User-Agent": env("IBM_BOB_USER_AGENT") ?? "pi-dangit-bobby/0.1.0" },
+			headers: { "Content-Type": "application/json", "User-Agent": BOB_USER_AGENT },
 			body: JSON.stringify(body),
 			signal: controller.signal,
 		});
