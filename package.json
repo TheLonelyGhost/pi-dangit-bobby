@@ -20,7 +20,7 @@
     "README.md",
     "LICENSE"
   ],
-  "author": "Larry Song",
+  "author": "David Alexander",
   "license": "MIT",
   "scripts": {
     "check": "npm run typecheck && pi -e . --list-models >/dev/null",

@@ -172,7 +172,7 @@ The response included `bob-ok` and successful usage stats for model `premium`.
 The unauthenticated Bob model-info endpoint responds as expected when called with a normal User-Agent:
 
 ```bash
-curl -H 'User-Agent: pi-dangit-bobby/0.1.0' \
+curl -H 'User-Agent: bobshell/1.0.6' \
   https://api.us-east.bob.ibm.com/inference/v1/model/info
 ```
 
@@ -207,13 +207,13 @@ Result: HTTP `401 unauthorized`.
 End-to-end smoke with a fresh Bob SSO token succeeded:
 
 ```text
-pi -e . --model ibm-bob/premium -p 'Reply with exactly: pi-dangit-bobby-ok'
+pi -e . --model ibm-bob/premium -p 'Reply with exactly: dangit, bobby!'
 ```
 
 Result:
 
 ```text
-pi-dangit-bobby-ok
+dangit, bobby!
 ```
 
 ## Install options
