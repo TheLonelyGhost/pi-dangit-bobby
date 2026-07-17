@@ -2,9 +2,9 @@
 
 Forked from [`pi-bob@0.2.0`](https://www.npmjs.com/package/pi-bob).
 
-Pi provider package for IBM Bob / IBM-approved enterprise model endpoints.
+Pi provider package for authorized IBM Bob-compatible enterprise model endpoints.
 
-The package registers Bob through Pi's built-in compatible provider APIs and discovers the currently exposed model catalog from Bob's authenticated `/inference/v1/model/info` endpoint. It does not scrape Bob, extract browser/session credentials, or bypass IBM-approved access paths.
+The package registers Bob through Pi's built-in compatible provider APIs, discovers the currently exposed model catalog from Bob's authenticated `/inference/v1/model/info` endpoint, and optionally signs requests with an operator-provisioned secret. It does not scrape Bob, extract browser/session credentials, embed signing keys, or bypass IBM-approved access paths.
 
 ## Discovered local Bob Shell settings
 
@@ -40,6 +40,8 @@ Set `IBM_BOB_API` to one of Pi's compatible API adapters:
 
 The extension registers provider id `ibm-bob`. It uses an isolated `ibm-bob-compatible` Pi API adapter internally, then delegates serialization and streaming to the selected built-in adapter. This prevents Bob-specific authentication rules from affecting other providers.
 
+Request signing is supported for the default `openai-completions` adapter. When a signing secret is configured, the final serialized payload is signed before the request is delegated to Pi's OpenAI adapter. The extension fails instead of silently sending unsigned requests if signing is configured with another API adapter.
+
 ## Dynamic model discovery
 
 Model discovery is enabled by default:
@@ -56,7 +58,7 @@ Discovered context limits, output limits, vision support, reasoning support, bac
 Use Bob SSO through Pi:
 
 ```bash
-pi -e /Users/larry.song/work/hashicorp/pi-dangit-bobby
+pi -e ./pi-dangit-bobby
 # inside Pi:
 #   /login ibm-bob
 #   /model ibm-bob/premium
@@ -69,8 +71,8 @@ For non-interactive use with an approved Bob API key, run:
 ```bash
 export IBM_BOB_API_KEY="..." # IBM_BOB_KEY is also accepted; do not commit either
 
-pi -e /Users/larry.song/work/hashicorp/pi-dangit-bobby --list-models
-pi -e /Users/larry.song/work/hashicorp/pi-dangit-bobby --model ibm-bob/premium
+pi -e ./pi-dangit-bobby --list-models
+pi -e ./pi-dangit-bobby --model ibm-bob/premium
 ```
 
 API keys use Bob's `Authorization: Apikey ...` scheme by default. If your approved credential is instead a bearer token, set `IBM_BOB_AUTH_SCHEME=Bearer`. Pi resolves credentials in this order: runtime `--api-key`, a stored credential (including SSO), then the provider's environment-key fallback. The model catalog follows stored SSO metadata when SSO remains configured. Run `/logout ibm-bob` before switching from SSO to either `IBM_BOB_API_KEY` or runtime `--api-key`; runtime-only keys cannot drive startup discovery.
@@ -88,6 +90,8 @@ IBM_BOB_MODEL_DISCOVERY_TIMEOUT_MS="5000"
 Discovered metadata is used unless a corresponding metadata override is set. Without a discovered catalog, fallback models use a 200,000-token context window and 8,192-token output limit.
 
 For SSO, do **not** copy a token out of Bob's local credential store unless IBM policy explicitly permits it. Use `/login ibm-bob` instead.
+
+If your IBM gateway deployment requires request signing, inject `IBM_BOB_REQUEST_SIGNING_SECRET` through your approved secret manager or process supervisor. Do not place it in source files, shell history, checked-in `.env` files, or Pi configuration. Set `IBM_BOB_REQUIRE_REQUEST_SIGNING=true` to fail closed when the secret is unavailable.
 
 ## Configuration
 
@@ -119,6 +123,17 @@ For SSO, do **not** copy a token out of Bob's local credential store unless IBM 
 | --- | --- | --- |
 | `IBM_BOB_AUTH_SCHEME` | `Apikey` for environment API keys | Override with `Bearer` when the environment credential is a bearer token. SSO always uses Bearer automatically. |
 | `IBM_BOB_HEADERS_JSON` | unset | JSON object of extra headers. Values may use Pi env interpolation such as `"$IBM_BOB_API_KEY"`. |
+
+### Request signing
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `IBM_BOB_REQUEST_SIGNING_SECRET` | unset | Operator-provisioned HMAC-SHA256 key. It must contain at least 32 bytes and must not have leading or trailing whitespace. Keep it outside source control. |
+| `IBM_BOB_REQUIRE_REQUEST_SIGNING` | `false` | Fail closed when no signing secret is available. Accepts standard boolean values such as `true`/`false` and `1`/`0`; invalid values are rejected. |
+
+For signed requests, the extension sends `x-request-timestamp` and `x-request-signature`. The signature covers the uppercase HTTP method, path and query, canonical UTC timestamp, and SHA-256 digest of the exact request body. Existing static values for either signing header are removed before fresh values are added.
+
+Signing currently covers model discovery and OpenAI Chat Completions requests. SSO token exchange remains authenticated by the authorization-code/refresh-token flow. `openai-responses` and `anthropic-messages` remain available only when request signing is not configured.
 
 ### Model metadata
 
@@ -171,12 +186,14 @@ The Pi provider registers with fallback settings when no authenticated catalog i
 pi -e . --list-models | grep ibm-bob
 ```
 
-Automated tests cover LiteLLM response validation, hidden-model filtering, per-million cost conversion, API-key discovery, `IBM_BOB_KEY` compatibility, fallback behavior, SSO refresh discovery, routing headers, cached catalog replacement, and final authentication headers/routes through all three advertised adapters:
+Automated tests cover deterministic HMAC vectors, secret validation, header replacement, payload construction, payload-hook ordering, and an end-to-end local signed streaming request through Pi's OpenAI adapter:
 
 ```bash
-bun test
+npm test
 npm run check
 ```
+
+`npm run check` performs a TypeScript check and verifies that Pi can load the provider.
 
 A dummy-token Pi request reaches the Bob endpoint and fails with the expected auth error:
 
@@ -204,19 +221,19 @@ pi-dangit-bobby-ok
 Temporary test load:
 
 ```bash
-pi -e /Users/larry.song/work/hashicorp/pi-dangit-bobby
+pi -e ./pi-dangit-bobby
 ```
 
 Install as a local Pi package:
 
 ```bash
-pi install /Users/larry.song/work/hashicorp/pi-dangit-bobby
+pi install ./pi-dangit-bobby
 ```
 
 Remove later:
 
 ```bash
-pi remove /Users/larry.song/work/hashicorp/pi-dangit-bobby
+pi remove ./pi-dangit-bobby
 ```
 
 ## Next steps
